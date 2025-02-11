@@ -65,20 +65,24 @@ jobs:
           echo "Home Directory: $HOME"
           ls -lah ~/
 
-      - name: Fix Permissions and Set Up SSH
+      - name: Ensure SSH Directory Exists
         run: |
-          sudo mkdir -p ~/.ssh
-          sudo chown -R $(whoami) ~/.ssh
-          sudo chmod 700 ~/.ssh
-          touch ~/.ssh/known_hosts
-          chmod 600 ~/.ssh/known_hosts
-          echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" | tr -d '\r' > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H 13.53.200.254 >> ~/.ssh/known_hosts
+          if [ ! -d "$HOME/.ssh" ]; then
+            mkdir -p "$HOME/.ssh"
+          fi
+          chmod 700 "$HOME/.ssh"
+          ls -lah "$HOME/.ssh"
+
+      - name: Set Up SSH Keys
+        run: |
+          echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" | tr -d '\r' > "$HOME/.ssh/id_rsa"
+          chmod 600 "$HOME/.ssh/id_rsa"
+          ssh-keyscan -H 13.53.200.254 >> "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/known_hosts"
 
       - name: Deploy to EC2
         run: |
-          ssh -i ~/.ssh/id_rsa ubuntu@13.53.200.254 << 'EOF'
+          ssh -i "$HOME/.ssh/id_rsa" ubuntu@13.53.200.254 << 'EOF'
           cd /home/ubuntu/connectShere/ConnectSphere-backend  # Navigate to project
           git pull origin main  # Pull latest changes
           source env/bin/activate  # Activate virtual environment
