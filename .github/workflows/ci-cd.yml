@@ -64,11 +64,14 @@ jobs:
           echo "Current Directory: $(pwd)"
           echo "Home Directory: $HOME"
           ls -lah ~/
-      
-      - name: Set Up SSH Key
+
+      - name: Fix Permissions and Set Up SSH
         run: |
-          mkdir -p ~/.ssh
-          chmod 700 ~/.ssh
+          sudo mkdir -p ~/.ssh
+          sudo chown -R $(whoami) ~/.ssh
+          sudo chmod 700 ~/.ssh
+          touch ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
           echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" | tr -d '\r' > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H 13.53.200.254 >> ~/.ssh/known_hosts
