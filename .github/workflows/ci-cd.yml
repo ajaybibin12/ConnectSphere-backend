@@ -65,7 +65,6 @@ jobs:
           echo "Home Directory: $HOME"
           ls -lah ~/
 
-
       - name: Ensure SSH Directory Exists
         run: |
           if [ ! -d "$HOME/.ssh" ]; then
@@ -76,18 +75,24 @@ jobs:
 
       - name: Set Up SSH Keys
         run: |
-          echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" | tr -d '\r' > "$HOME/.ssh/id_rsa"
+          echo -e "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > "$HOME/.ssh/id_rsa"
           chmod 600 "$HOME/.ssh/id_rsa"
           ssh-keyscan -H 13.53.200.254 >> "$HOME/.ssh/known_hosts"
           chmod 600 "$HOME/.ssh/known_hosts"
 
+      - name: Debug SSH Connection
+        run: |
+          ls -lah ~/.ssh/
+          cat ~/.ssh/known_hosts
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@13.53.200.254 "echo 'SSH connection successful!'"
+
       - name: Deploy to EC2
         run: |
-          ssh -i "$HOME/.ssh/id_rsa" ubuntu@13.53.200.254 << 'EOF'
-          cd /home/ubuntu/connectShere/ConnectSphere-backend  # Navigate to project
-          git pull origin main  # Pull latest changes
-          source env/bin/activate  # Activate virtual environment
-          pip install -r requirements.txt  # Install dependencies
-          alembic upgrade head  # Apply database migrations
-          sudo systemctl restart fastapi.service  # Restart FastAPI service
+          ssh -i "$HOME/.ssh/id_rsa" -o StrictHostKeyChecking=no ubuntu@13.53.200.254 << 'EOF'
+          cd /home/ubuntu/connectShere/ConnectSphere-backend
+          git pull origin main
+          source env/bin/activate
+          pip install -r requirements.txt
+          alembic upgrade head
+          sudo systemctl restart fastapi.service
           EOF
