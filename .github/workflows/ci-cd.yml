@@ -60,23 +60,23 @@ jobs:
 
       - name: Debug SSH Setup
         run: |
-          whoami
-          pwd
+          echo "Current User: $(whoami)"
+          echo "Current Directory: $(pwd)"
+          echo "Home Directory: $HOME"
           ls -lah ~/
-          mkdir -p ~/.ssh || (echo "Failed to create .ssh directory" && exit 1)
-          ls -lah ~/.ssh
-
+      
       - name: Set Up SSH Key
         run: |
           mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
           echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" | tr -d '\r' > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H 13.53.200.254 >> ~/.ssh/known_hosts
 
       - name: Deploy to EC2
         run: |
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ubuntu@13.53.200.254 << 'EOF'
-          cd /home/ubuntu/connectShere/ConnectSphere-backend  # Navigate to your project directory
+          ssh -i ~/.ssh/id_rsa ubuntu@13.53.200.254 << 'EOF'
+          cd /home/ubuntu/connectShere/ConnectSphere-backend  # Navigate to project
           git pull origin main  # Pull latest changes
           source env/bin/activate  # Activate virtual environment
           pip install -r requirements.txt  # Install dependencies
