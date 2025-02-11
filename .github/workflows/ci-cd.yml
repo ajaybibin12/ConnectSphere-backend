@@ -65,6 +65,7 @@ jobs:
           echo "Home Directory: $HOME"
           ls -lah ~/
 
+
       - name: Ensure SSH Directory Exists
         run: |
           if [ ! -d "$HOME/.ssh" ]; then
