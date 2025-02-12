@@ -113,3 +113,6 @@ jobs:
           alembic upgrade head
           sudo systemctl restart fastapi.service
           EOF
+
+
+          
