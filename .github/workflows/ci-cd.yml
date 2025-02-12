@@ -58,38 +58,51 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Debug SSH Setup
+      # ✅ Debugging Steps
+      - name: Debug Environment
         run: |
           echo "Current User: $(whoami)"
           echo "Current Directory: $(pwd)"
           echo "Home Directory: $HOME"
           ls -lah ~/
 
+      # ✅ Ensure SSH Directory Exists
       - name: Ensure SSH Directory Exists
         run: |
-          if [ ! -d "$HOME/.ssh" ]; then
-            mkdir -p "$HOME/.ssh"
-          fi
+          mkdir -p "$HOME/.ssh"
           chmod 700 "$HOME/.ssh"
           ls -lah "$HOME/.ssh"
 
+      # ✅ Debug SSH Key (Check if it exists and has correct length)
       - name: Debug SSH Key
-        run: echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" | wc -l
+        run: |
+          echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" | wc -l
 
+      # ✅ Set Up SSH Keys Correctly
       - name: Set Up SSH Keys
         run: |
-          mkdir -p ~/.ssh
           echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" | tr -d '\r' > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H 13.53.200.254 >> ~/.ssh/known_hosts
           chmod 600 ~/.ssh/known_hosts
 
-      - name: Debug SSH Connection
+      # ✅ Check SSH Key Format
+      - name: Verify SSH Key Format
         run: |
-          ls -lah ~/.ssh/
-          cat ~/.ssh/known_hosts
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@13.53.200.254 "echo 'SSH connection successful!'"
+          file ~/.ssh/id_rsa
+          head -n 2 ~/.ssh/id_rsa
 
+      # ✅ Load SSH Key into Agent
+      - name: Add SSH Key to SSH Agent
+        run: |
+          eval "$(ssh-agent -s)"
+          ssh-add ~/.ssh/id_rsa
+
+      # ✅ Debug SSH Connection Before Deploying
+      - name: Test SSH Connection
+        run: ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@13.53.200.254 "echo 'SSH connection successful!'"
+
+      # ✅ Deploy to EC2
       - name: Deploy to EC2
         run: |
           ssh -i "$HOME/.ssh/id_rsa" -o StrictHostKeyChecking=no ubuntu@13.53.200.254 << 'EOF'
