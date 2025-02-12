@@ -73,7 +73,9 @@ jobs:
           fi
           chmod 700 "$HOME/.ssh"
           ls -lah "$HOME/.ssh"
-
+      - name: Debug SSH Key
+          run: echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" | wc -l
+        
       - name: Set Up SSH Keys
         run: |
           mkdir -p ~/.ssh
