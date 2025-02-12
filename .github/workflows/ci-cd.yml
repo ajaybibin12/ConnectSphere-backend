@@ -98,5 +98,3 @@ jobs:
           sudo systemctl restart fastapi.service
           EOF
 
-
-          
